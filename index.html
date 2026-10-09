@@ -542,11 +542,11 @@ const beforeLevel =
 
 const feedback = document.getElementById(“feedback”);
 
-if(correct){
+if (correct) {
 score++;
 feedback.textContent = “⭕️”;
 feedback.style.color = “#00b050”;
-}else{
+} else {
 feedback.textContent = “❌”;
 feedback.style.color = “#ff0000”;
 }
@@ -580,11 +580,13 @@ const afterLevel =
         .textContent =
         Math.round(score / totalQuestions * 100);
 
-    answerBox.value = "";
+setTimeout(() => {
+feedback.textContent = “”;
+answerBox.value = “”;
+newQuestion();
+answerBox.focus();
+}, 500);
 
-    newQuestion();
-
-    answerBox.focus();
 });
 
 function showResult(){
