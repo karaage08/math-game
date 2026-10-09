@@ -544,11 +544,11 @@ const feedback = document.getElementById("feedback");
 
 if (correct) {
 score++;
-feedback.textContent = “⭕️”;
-feedback.style.color = “#00b050”;
+feedback.textContent = "⭕️";
+feedback.style.color = "#00b050";
 } else {
-feedback.textContent = “❌”;
-feedback.style.color = “#ff0000”;
+feedback.textContent = "❌";
+feedback.style.color = "#ff0000";
 }
 
 const afterLevel =
@@ -581,8 +581,8 @@ const afterLevel =
         Math.round(score / totalQuestions * 100);
 
 setTimeout(() => {
-feedback.textContent = “”;
-answerBox.value = “”;
+feedback.textContent = "";
+answerBox.value = "";
 newQuestion();
 answerBox.focus();
 }, 500);
