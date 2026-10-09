@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>四則計算タイピングゲーム</title>
+
+<style>
+body{
+    font-family:"Yu Gothic","Meiryo",sans-serif;
+    background:linear-gradient(135deg,#4facfe,#00f2fe);
+    margin:0;
+    padding:20px;
+    min-height:100vh;
+    text-align:center;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+    background:white;
+    border-radius:20px;
+    padding:30px;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+
+.title-area{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white;
+    border-radius:15px;
+    padding:25px;
+    margin-bottom:25px;
+}
+
+.title-area h1{
+    margin:0;
+    font-size:36px;
+}
+
+.title-area p{
+    margin-top:15px;
+    font-size:18px;
+}
+
+.info{
+    display:flex;
+    justify-content:space-around;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:20px;
+    font-size:18px;
+}
+
+#level{
+    font-size:22px;
+    color:#1a73e8;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+#question{
+    font-size:64px;
+    font-weight:bold;
+    color:#333;
+    margin:30px 0;
+    min-height:80px;
+}
+
+#answer{
+    font-size:32px;
+    width:200px;
+    text-align:center;
+    padding:10px;
+    border:2px solid #667eea;
+    border-radius:10px;
+}
+
+#startButton{
+    font-size:28px;
+    font-weight:bold;
+    color:white;
+    border:none;
+    border-radius:50px;
+    padding:15px 50px;
+    cursor:pointer;
+    background:linear-gradient(135deg,#ff9800,#ff5722);
+    box-shadow:0 5px 12px rgba(0,0,0,.25);
+    transition:.2s;
+}
+
+#startButton:hover{
+    transform:scale(1.05);
+}
+
+#restartButton{
+    font-size:24px;
+    padding:15px 40px;
+    border:none;
+    border-radius:12px;
+    background:#4CAF50;
+    color:white;
+    cursor:pointer;
+}
+
+.message{
+    margin-top:15px;
+    color:#555;
+}
+
+.result-container{
+    max-width:1000px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+    font-size:14px;
+}
+
+th, td{
+    border:1px solid #ccc;
+    padding:6px;
+}
+
+th{
+    background:#f0f0f0;
+}
+
+.notice{
+    background:#fff8dc;
+    border:2px solid #f0c040;
+    padding:15px;
+    margin-top:20px;
+    text-align:left;
+    line-height:1.8;
+}
+
+.levelup{
+    color:red;
+    font-size:28px;
+    font-weight:bold;
+    height:40px;
+}
+
+.mistake-box{
+    max-height:250px;
+    overflow-y:auto;
+    border:1px solid #ccc;
+    border-radius:10px;
+    padding:10px;
+    background:#fafafa;
+    margin-top:10px;
+}
+
+.mistake-item{
+    padding:6px 0;
+    border-bottom:1px solid #eee;
+    text-align:left;
+}
+``
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="title-area">
+    <h1>🎮 四則計算タイピングゲーム</h1>
+    <p>
+        制限時間60秒！<br>
+        たくさん解いて高得点を目指そう！
+    </p>
+</div>
+
+<div class="info">
+    <div>正解数：<span id="score">0</span></div>
+    <div>問題数：<span id="total">0</span></div>
+    <div>正解率：<span id="rate">0</span>%</div>
+    <div>残り：<span id="time">60</span>秒</div>
+</div>
+
+<div id="level">レベル1（＋－）</div>
+
+<div class="levelup" id="levelup"></div>
+
+<button id="startButton">スタート</button>
+
+<div id="question">
+スタートボタンを押して始める
+</div>
+
+<input
+    type="number"
+    id="answer"
+    style="display:none;"
+    autocomplete="off"
+>
+
+<div class="message">
+答えを入力して Enter キーを押してください
+</div>
+
+</div>
+
+<script>
+
+let score = 0;
+let totalQuestions = 0;
+let time = 60;
+
+let currentAnswer = 0;
+let currentQuestionText = "";
+
+let timer = null;
+let gameStarted = false;
+
+let history = [];
+
+const answerBox = document.getElementById("answer");
+
+function showLevelUp(text){
+
+    const area =
+        document.getElementById("levelup");
+
+    area.textContent = text;
+
+    setTimeout(()=>{
+        area.textContent = "";
+    },1000);
+}
+
+function updateLevel(){
+
+    let levelText;
+
+ if(score < 5){
+
+    levelText = "レベル1（＋－）";
+
+}else if(score < 10){
+
+    levelText = "レベル2（＋－×）";
+
+}else if(score < 20){
+
+    levelText = "レベル3（＋－×÷）";
+
+}else if(score < 30){
+
+    levelText = "レベル4（２けた±１けた追加）";
+
+}else{
+
+    levelText = "レベル5（複合計算追加）";
+}
+
+    document.getElementById("level")
+        .textContent = levelText;
+}
+
+function newQuestion(){
+
+    let a;
+    let b;
+
+    let ops;
+
+if(score < 5){
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-"];
+
+}
+else if(score < 10){
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-","×"];
+
+}
+else if(score < 30){
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-","×","÷"];
+
+}
+if(score < 5){
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-"];
+
+}
+else if(score < 10){
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-","×"];
+
+}
+else if(score < 20){
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-","×","÷"];
+
+}
+else if(score < 30){
+
+if(Math.random() < 0.5){
+
+    a = Math.floor(Math.random()*90)+10;
+    b = Math.floor(Math.random()*9)+1;
+
+    // 二けた問題は足し算のみ
+    ops = ["+"];
+
+}else{
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-","×","÷"];
+
+}
+
+}
+else{
+
+    a = Math.floor(Math.random()*9)+1;
+    b = Math.floor(Math.random()*9)+1;
+
+    ops = ["+","-","×","÷"];
+}
+
+    const op =
+        ops[Math.floor(Math.random()*ops.length)];
+
+    let text = "";
+
+if(score >= 30 && Math.random() < 0.4){
+
+    const x = Math.floor(Math.random()*9)+1;
+    const y = Math.floor(Math.random()*9)+1;
+    const z = Math.floor(Math.random()*9)+1;
+
+    const patterns = [
+
+        {
+            text: `${x} + ${y} × ${z}`,
+            answer: x + y * z
+        },
+
+        {
+            text: `${x} × ${y} + ${z}`,
+            answer: x * y + z
+        },
+
+        {
+            text: `${x} + ${y} + ${z}`,
+            answer: x + y + z
+        },
+
+        {
+            text: `${x} × ${y} - ${z}`,
+            answer: x * y - z
+        }
+
+    ];
+
+    const p =
+        patterns[
+            Math.floor(Math.random()*patterns.length)
+        ];
+
+    currentAnswer = p.answer;
+    currentQuestionText = p.text;
+
+    document.getElementById("question")
+        .textContent = p.text;
+
+    updateLevel();
+
+    return;
+}
+
+    if(op === "+"){
+
+        currentAnswer = a+b;
+        text = `${a} + ${b}`;
+
+    }
+    else if(op === "-"){
+
+        if(a < b){
+            [a,b] = [b,a];
+        }
+
+        currentAnswer = a-b;
+        text = `${a} - ${b}`;
+
+    }
+    else if(op === "×"){
+
+        currentAnswer = a*b;
+        text = `${a} × ${b}`;
+
+    }
+    else{
+
+        const answer =
+            Math.floor(Math.random()*9)+1;
+
+        const divisor =
+            Math.floor(Math.random()*9)+1;
+
+        currentAnswer = answer;
+
+        text =
+            `${answer*divisor} ÷ ${divisor}`;
+    }
+
+    currentQuestionText = text;
+
+    document.getElementById("question")
+        .textContent = text;
+
+    updateLevel();
+}
+
+document
+.getElementById("startButton")
+.addEventListener("click", startGame);
+
+function startGame(){
+
+    if(gameStarted) return;
+
+    gameStarted = true;
+
+    document.getElementById("startButton")
+        .style.display = "none";
+
+    answerBox.style.display = "inline-block";
+
+    newQuestion();
+
+    answerBox.focus();
+
+    timer = setInterval(()=>{
+
+        time--;
+
+        document.getElementById("time")
+            .textContent = time;
+
+        if(time <= 0){
+
+            clearInterval(timer);
+
+            showResult();
+        }
+
+    },1000);
+}
+
+answerBox.addEventListener("keydown", function(e){
+
+    if(e.key !== "Enter"){
+        return;
+    }
+
+    if(answerBox.value.trim() === ""){
+        return;
+    }
+
+    totalQuestions++;
+
+const beforeLevel =
+    score < 5 ? 1 :
+    score < 10 ? 2 :
+    score < 20 ? 3 :
+    score < 30 ? 4 : 5;
+
+    const userAnswer =
+        Number(answerBox.value);
+
+    const correct =
+        userAnswer === currentAnswer;
+
+    if(correct){
+        score++;
+    }
+
+const afterLevel =
+    score < 5 ? 1 :
+    score < 10 ? 2 :
+    score < 20 ? 3 :
+    score < 30 ? 4 : 5;
+
+    if(afterLevel > beforeLevel){
+        showLevelUp(
+            `🎉 レベル${afterLevel}へアップ！`
+        );
+    }
+
+    history.push({
+        question: currentQuestionText,
+        userAnswer: answerBox.value,
+        correctAnswer: currentAnswer,
+        result: correct
+    });
+
+    document.getElementById("score")
+        .textContent = score;
+
+    document.getElementById("total")
+        .textContent = totalQuestions;
+
+    document.getElementById("rate")
+        .textContent =
+        Math.round(score / totalQuestions * 100);
+
+    answerBox.value = "";
+
+    newQuestion();
+
+    answerBox.focus();
+});
+
+function showResult(){
+
+    const rate =
+        totalQuestions === 0
+        ? 0
+        : Math.round(score / totalQuestions * 100);
+
+    const mistakes =
+        history.filter(item => !item.result);
+
+let rows = "";
+
+mistakes.forEach((item,index)=>{
+
+    rows += `
+    <div class="mistake-item">
+        ${index + 1}.　
+        ${item.question}
+        →
+        ${item.userAnswer}
+        （正答：${item.correctAnswer}）
+    </div>
+    `;
+});
+
+    document.body.innerHTML = `
+    <div class="result-container">
+
+        <h1>🏆 結果発表</h1>
+
+        <h2>
+            問題数：${totalQuestions}問　
+            正解数：${score}問　
+            正解率：${rate}%
+        </h2>
+
+
+<h3>
+    間違えた問題一覧
+    （${mistakes.length}問）
+</h3>
+
+${
+    mistakes.length === 0
+
+    ?
+
+    "<p><strong>🎉 全問正解です！</strong></p>"
+
+    :
+
+    `
+    <div class="mistake-box">
+        ${rows}
+    </div>
+    `
+}
+        <br>
+
+        <button
+            id="restartButton"
+            onclick="location.reload()">
+            もう一度チャレンジ！
+        </button>
+
+        <div class="notice">
+
+            <strong>
+            スクリーンショットをして、
+            結果を保存し、
+            クラスルームから提出しましょう。
+            </strong>
+
+            <br><br>
+
+            スクリーンショットのやり方：
+
+            <br>
+
+            左下の「Ctrl」キーを押しながら、
+            「□││」のキー（６と７の上にある）
+            を押す
+
+        </div>
+
+    </div>
+    `;
+}
+
+</script>
+
+</body>
+</html>
