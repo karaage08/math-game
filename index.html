@@ -186,6 +186,15 @@ th{
     <div>残り：<span id="time">60</span>秒</div>
 </div>
 
+<div id="datetime" style="
+    font-size:18px;
+    font-weight:bold;
+    color:#333;
+    margin-bottom:15px;
+">
+    実施日時：
+</div>
+
 <div id="level">レベル1（＋－）</div>
 
 <div class="levelup" id="levelup"></div>
@@ -224,6 +233,24 @@ let gameStarted = false;
 let history = [];
 
 const answerBox = document.getElementById("answer");
+
+function updateDateTime() {
+    const now = new Date();
+
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+
+    const h = String(now.getHours()).padStart(2, "0");
+    const min = String(now.getMinutes()).padStart(2, "0");
+    const s = String(now.getSeconds()).padStart(2, "0");
+
+    document.getElementById("datetime").textContent =
+        `実施日時：${y}/${m}/${d} ${h}:${min}:${s}`;
+}
+
+setInterval(updateDateTime, 1000);
+updateDateTime();
 
 function showLevelUp(text){
 
@@ -546,6 +573,9 @@ const afterLevel =
 
 function showResult(){
 
+    const finishTime =
+        new Date().toLocaleString("ja-JP");
+
     const rate =
         totalQuestions === 0
         ? 0
@@ -573,6 +603,14 @@ mistakes.forEach((item,index)=>{
     <div class="result-container">
 
         <h1>🏆 結果発表</h1>
+
+<p style="
+    font-size:20px;
+    font-weight:bold;
+    color:#333;
+">
+    実施日時：${finishTime}
+</p>
 
         <h2>
             問題数：${totalQuestions}問　
