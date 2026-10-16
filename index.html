@@ -241,6 +241,9 @@ let gameStarted = false;
 
 let history = [];
 
+// Enter連打防止
+let waitingNext = false;
+
 const answerBox = document.getElementById("answer");
 
 function updateDateTime() {
@@ -522,9 +525,15 @@ answerBox.addEventListener("keydown", function(e){
         return;
     }
 
+    if(waitingNext){
+        return;
+    }
+
     if(answerBox.value.trim() === ""){
         return;
     }
+
+    waitingNext = true;
 
     totalQuestions++;
 
@@ -550,6 +559,8 @@ feedback.style.color = "#00b050";
 feedback.textContent = "❌";
 feedback.style.color = "#ff0000";
 }
+
+answerBox.disabled = true;
 
 const afterLevel =
     score < 5 ? 1 :
@@ -581,10 +592,15 @@ const afterLevel =
         Math.round(score / totalQuestions * 100);
 
 setTimeout(() => {
-feedback.textContent = "";
-answerBox.value = "";
-newQuestion();
-answerBox.focus();
+    feedback.textContent = "";
+    answerBox.value = "";
+    newQuestion();
+
+    answerBox.disabled = false;
+    answerBox.focus();
+
+    waitingNext = false;
+
 }, 500);
 
 });
